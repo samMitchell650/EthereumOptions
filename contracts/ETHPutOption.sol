@@ -1,8 +1,8 @@
 pragma solidity ^0.5.0;
 
-import "node_modules/openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
-import "node_modules/openzeppelin-solidity/contracts/token/ERC20/ERC20Detailed.sol";
-import "node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "../node_modules/openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
+import "../node_modules/openzeppelin-solidity/contracts/token/ERC20/ERC20Detailed.sol";
+import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 contract ETHPutOption is ERC20, ERC20Detailed {
     using SafeMath for uint256;
@@ -55,7 +55,7 @@ contract ETHPutOption is ERC20, ERC20Detailed {
         _total_contribution.add(amount);
         _mint(msg.sender, amount);
         uint256 dai_collateral = amount.mul(_strike);
-        require(DAI_CONTRACT.transferFrom(exercisor, address(this), dai_collateral), "DAI transfer unsuccessful");
+        require(DAI_CONTRACT.transferFrom(msg.sender, address(this), dai_collateral), "DAI transfer unsuccessful");
         emit OptionWrote(msg.sender, amount);
         
         return true;

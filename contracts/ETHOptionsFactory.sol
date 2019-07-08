@@ -28,7 +28,9 @@ contract ETHOptionsFactory {
         require(_call_option_contracts[expiration_timestamp][strike] == address(0), "Contract already created.");
         
         // create new call option contract with the given parameters
-        address call_option_contract_address = new ETHCallOption(expiration_timestamp, strike, "ETH Call Contract", "ETHCall");
+        ETHCallOption call_option_contract = new ETHCallOption(expiration_timestamp, strike, "ETH Call Contract", "ETHCall");
+
+        address call_option_contract_address = address(call_option_contract);
 
         _call_option_contracts[expiration_timestamp][strike] = call_option_contract_address;
 
@@ -46,7 +48,9 @@ contract ETHOptionsFactory {
         require(_put_option_contracts[expiration_timestamp][strike] == address(0), "Contract already created.");
         
         // create new put option contract with the given parameters
-        address put_option_contract_address = new ETHPutOption(expiration_timestamp, strike, "ETH Put Contract", "ETHPut");
+        ETHPutOption put_option_contract = new ETHPutOption(expiration_timestamp, strike, "ETH Put Contract", "ETHPut");
+
+        address put_option_contract_address = address(put_option_contract);
 
         _put_option_contracts[expiration_timestamp][strike] = put_option_contract_address;
 
