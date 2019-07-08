@@ -24,15 +24,23 @@
 // const fs = require('fs');
 // const mnemonic = fs.readFileSync(".secret").toString().trim();
 
+var HDWalletProvider = require("truffle-hdwallet-provider");
+var mnemonic = "return pen damp farm this milk length seven outside corn decorate bike";
+
 module.exports = {
-  // see <http://truffleframework.com/docs/advanced/configuration>
-  // for more details on how to specify configuration options!
-  
-  networks: {
-    localnode: {
-      network_id: "*",
-      host: "localhost",
-      port: 8545
-    }
+ networks: {
+  development: {
+   host: "127.0.0.1",
+   port: 8545,
+   network_id: "*"
+  },
+  ropsten: {
+      provider: function() { 
+       return new HDWalletProvider(mnemonic, "https://ropsten.infura.io/v3/864becafff9e424aa2ff8b65bb4337ec");
+      },
+      network_id: 4,
+      gas: 6721975,
+      gasPrice: 20000000000,
   }
+ }
 };
