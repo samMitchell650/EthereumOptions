@@ -1,10 +1,12 @@
 pragma solidity ^0.5.0;
 
+import "./compound_interfaces/CETH.sol";
+import "./compound_interfaces/CERC20.sol";
 import "../node_modules/openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "../node_modules/openzeppelin-solidity/contracts/token/ERC20/ERC20Detailed.sol";
 import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 
-contract ETHCallOption is ERC20, ERC20Detailed {
+contract CETHCallOption is ERC20, ERC20Detailed {
     using SafeMath for uint256;
     
     uint256 private _expiration_timestamp;
@@ -14,6 +16,8 @@ contract ETHCallOption is ERC20, ERC20Detailed {
     uint256 private _total_contribution;
     
     ERC20 constant private DAI_CONTRACT = ERC20(0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359);
+    CERC20 constant private CDAI_CONTRACT = CERC20(0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359);
+    CETH constant private CETH_CONTRACT = CETH(0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359);
     
     event OptionExercised(address indexed owner, uint256 amount);
     event OptionWrote(address indexed writer, uint256 amount);
@@ -42,9 +46,12 @@ contract ETHCallOption is ERC20, ERC20Detailed {
         }
         require(balanceOf(exercisor) >= amount, "Not enough option tokens owned");
         _burn(exercisor, amount);
-        require(DAI_CONTRACT.transferFrom(exercisor, address(this), amount * _strike), "DAI transfer unsuccessful");
+        uint256 dai_to_exercise = amount.mul(_strike);
+        require(DAI_CONTRACT.transferFrom(exercisor, address(this), dai_to_exercise), "DAI transfer unsuccessful");
         exercisor.transfer(amount);
+        require(CDAI_CONTRACT.mint(dai_to_exercise) == 0, "Minting of cDAI tokens unsuccessful");
         emit OptionExercised(exercisor, amount);
+
         return true;
     }
     
@@ -53,6 +60,7 @@ contract ETHCallOption is ERC20, ERC20Detailed {
         _contributions[msg.sender] = msg.value;
         _total_contribution.add(msg.value);
         _mint(msg.sender, msg.value);
+        CETH_CONTRACT.mint.value(msg.value)();
         emit OptionWrote(msg.sender, msg.value);
         
         return true;
@@ -67,23 +75,29 @@ contract ETHCallOption is ERC20, ERC20Detailed {
 
         require(_contributions[msg.sender] > 0, "No contribution found");
         
-        uint256 total_balance_wei = address(this).balance;
-        uint256 claimer_proportion_wei_num = total_balance_wei.mul(_contributions[msg.sender]);
-        uint256 claimer_proportion_wei = claimer_proportion_wei_num.div(_total_contribution);
+        uint256 total_balance_ceth = CETH_CONTRACT.balanceOf(address(this));
+        uint256 claimer_proportion_ceth_num = total_balance_ceth.mul(_contributions[msg.sender]);
+        uint256 claimer_proportion_ceth = claimer_proportion_ceth_num.div(_total_contribution);
 
-        uint256 total_balance_dai = DAI_CONTRACT.balanceOf(address(this));
-        uint256 claimer_proportion_dai_num = total_balance_dai.mul(_contributions[msg.sender]);
-        uint256 claimer_proportion_dai = claimer_proportion_dai_num.div(_total_contribution);
+        uint256 total_balance_cdai = CDAI_CONTRACT.balanceOf(address(this));
+        uint256 claimer_proportion_cdai_num = total_balance_cdai.mul(_contributions[msg.sender]);
+        uint256 claimer_proportion_cdai = claimer_proportion_cdai_num.div(_total_contribution);
 
         _total_contribution.sub(_contributions[msg.sender]);
         _contributions[msg.sender] = 0;
 
-        if(claimer_proportion_dai > 0){
-            DAI_CONTRACT.transfer(msg.sender, claimer_proportion_dai);
+        if(claimer_proportion_cdai > 0){
+            uint256 balanceBefore = DAI_CONTRACT.balanceOf(address(this));
+            require(CDAI_CONTRACT.redeem(claimer_proportion_cdai) == 0, "Redeeming of cDAI tokens unsuccessful");
+            uint256 balanceAfter = DAI_CONTRACT.balanceOf(address(this));
+            DAI_CONTRACT.transfer(msg.sender, balanceAfter.sub(balanceBefore));
         }
         
-        if(claimer_proportion_wei > 0){
-            msg.sender.transfer(claimer_proportion_wei);
+        if(claimer_proportion_ceth > 0){
+            uint256 balanceBefore = address(this).balance;
+            require(CETH_CONTRACT.redeem(claimer_proportion_ceth) == 0, "Redeeming of cETH tokens unsuccessful");
+            uint256 balanceAfter = address(this).balance;
+            msg.sender.transfer(balanceAfter.sub(balanceBefore));
         }
         
         return true;
@@ -91,10 +105,10 @@ contract ETHCallOption is ERC20, ERC20Detailed {
     
     function deleteContract() public afterExpiration {
 
-        uint256 total_balance_eth = address(this).balance;
-        uint256 total_balance_dai = DAI_CONTRACT.balanceOf(address(this));
+        uint256 total_balance_ceth = CETH_CONTRACT.balanceOf(address(this));
+        uint256 total_balance_cdai = CDAI_CONTRACT.balanceOf(address(this));
         
-        if(total_balance_eth == 0 && total_balance_dai == 0){
+        if(total_balance_ceth == 0 && total_balance_cdai == 0){
             selfdestruct(msg.sender);
         }
     }

@@ -1,9 +1,9 @@
 pragma solidity ^0.5.0;
 
-import "./ETHCallOption.sol";
-import "./ETHPutOption.sol";
+import "./CETHCallOption.sol";
+import "./CETHPutOption.sol";
 
-contract ETHOptionsFactory {
+contract CETHOptionsFactory {
     
     mapping(uint256 => mapping(uint256 => address)) private _call_option_contracts;
     mapping(uint256 => mapping(uint256 => address)) private _put_option_contracts;
@@ -28,7 +28,7 @@ contract ETHOptionsFactory {
         require(_call_option_contracts[expiration_timestamp][strike] == address(0), "Contract already created.");
         
         // create new call option contract with the given parameters
-        ETHCallOption call_option_contract = new ETHCallOption(expiration_timestamp, strike, "ETH Call Contract", "ETHCall");
+        CETHCallOption call_option_contract = new CETHCallOption(expiration_timestamp, strike, "CETH Call Contract", "CETHCall");
 
         address call_option_contract_address = address(call_option_contract);
 
@@ -48,7 +48,7 @@ contract ETHOptionsFactory {
         require(_put_option_contracts[expiration_timestamp][strike] == address(0), "Contract already created.");
         
         // create new put option contract with the given parameters
-        ETHPutOption put_option_contract = new ETHPutOption(expiration_timestamp, strike, "ETH Put Contract", "ETHPut");
+        CETHPutOption put_option_contract = new CETHPutOption(expiration_timestamp, strike, "CETH Put Contract", "CETHPut");
 
         address put_option_contract_address = address(put_option_contract);
 
