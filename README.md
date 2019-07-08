@@ -1,4 +1,4 @@
-# Ethereum Options
+# CETH Options
 
 ## Table of Contents
 - [Overview](#Overview)
