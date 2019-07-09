@@ -2,8 +2,8 @@
 
 ## Table of Contents
 - [Overview](#Overview)
-- [Factory Contract](#Factory)
-- [Option Contracts](#Options)
+- [Factory](#Factory)
+- [Options](#Options)
 
 ## Overview
 CETH options use Compound to earn interest on collateral in the contract until contributions are claimed by option writers after expiration.
@@ -14,11 +14,11 @@ The buyer of the put option, Bob, can sell 1 ETH for 300 DAI to the put option c
 
 After expiration, Alice claims her assets back from the options contract. She either gets DAI, ETH, or a mix of the two depending on buyers exercise behavior.
 
-## Factory Contract
+## Factory
 
 #### The factory contract is used to originate option contracts for a specific token (just ETH right now). 
 
-Each options contract created by the factory is listed by its expiration timestamp and strike. The expiration timestamp maps to a map of strikes and their respective option contract addresses. This is purposely designed to be similar to clicking on an expiration and seeing the listed strikes for a given stock which traders should be used to. 
+Each option contract created by the factory is listed by its expiration timestamp and strike. The expiration timestamp maps to a map of strikes and their respective option contract addresses. This is purposely designed to be similar to clicking on an expiration and seeing the listed strikes for a given stock which traders should be used to. 
 ```solidity
 mapping(uint256 => mapping(uint256 => address)) private _call_option_contracts;
 mapping(uint256 => mapping(uint256 => address)) private _put_option_contracts;
@@ -55,7 +55,7 @@ function createPutOptionContract(uint256 expiration_timestamp, uint256 strike)
 
 And that's all there is to the factory contract!
 
-## Option Contracts
+## Options
 
 #### The option contract controls the writing, exercise, and ERC20 functionality of each option created by the factory. 
 
@@ -63,7 +63,7 @@ There are two types of option contracts: one for a call, and one for a put. Thei
 
 ### Writing an Option
 
-When you write an option, option tokens are created on a one-to-one basis the amount that you supply. You can then sell these option tokens on a DEX for a premium, and the buyer now has the right to exercise against your contributed collateral.
+When you write an option, option tokens are created on a one-to-one basis to the amount that you supply. You can then sell these option tokens on a DEX for a premium, and the buyer now has the right to exercise against your contributed collateral.
 
 First find the correct address for the contract type, expiration timestamp, and strike you want from the factory contract. For both a call and put option you will call the writeOption function, however, there are different parameters depending on the type.
 
