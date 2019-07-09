@@ -14,19 +14,3 @@ The buyer of the put option, Bob, can sell the put option contract 1 ETH for 300
 
 After expiration, Alice claims her assets back from the options contract. She either gets DAI, ETH, or a mix of the two depending on buyers exercise behavior.
 
-
-
-```solidity
-function writeOption(uint256 amount) public beforeExpiration returns (bool success) {
-        require(amount > 0, "Must write put option for at least 1 wei");
-        _contributions[msg.sender] = amount;
-        _total_contribution.add(amount);
-        _mint(msg.sender, amount);
-        uint256 dai_collateral = amount.mul(_strike);
-        require(DAI_CONTRACT.transferFrom(msg.sender, address(this), dai_collateral), "DAI transfer unsuccessful");
-        require(CDAI_CONTRACT.mint(dai_collateral) == 0, "Minting of cDAI tokens unsuccessful");
-        emit OptionWrote(msg.sender, amount);
-        
-        return true;
-}
-```
