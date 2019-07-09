@@ -40,20 +40,19 @@ contract CETHPutOption is ERC20, ERC20Detailed {
         _;
     }
 
-    function exerciseOption(address exercisor, uint256 amount) public payable beforeExpiration returns (bool success) {
+    function exerciseOption(address exercisor) public payable beforeExpiration returns (bool success) {
         if(exercisor != msg.sender){
-            require(allowance(exercisor, msg.sender) >= amount, "Unauthorized exercise");
+            require(allowance(exercisor, msg.sender) >= msg.value, "Unauthorized exercise");
         }
-        require(msg.value >= amount, "Not ETH sent to exercise");
-        require(balanceOf(exercisor) >= amount, "Not enough option tokens owned");
-        _burn(exercisor, amount);
-        CETH_CONTRACT.mint.value(amount)();
-        uint256 dai_collateral = amount.mul(_strike);
+        require(balanceOf(exercisor) >= msg.value, "Not enough option tokens owned");
+        _burn(exercisor, msg.value);
+        CETH_CONTRACT.mint.value(msg.value)();
+        uint256 dai_collateral = msg.value.mul(_strike);
         uint256 exchange_rate = CDAI_CONTRACT.exchangeRateCurrent();
         uint256 cdai_to_dai_collateral = dai_collateral.div(exchange_rate);
         require(CDAI_CONTRACT.redeem(cdai_to_dai_collateral) == 0, "Redeeming of cDAI tokens unsuccessful");
         require(DAI_CONTRACT.transferFrom(address(this), exercisor, dai_collateral), "DAI transfer unsuccessful");
-        emit OptionExercised(exercisor, amount);
+        emit OptionExercised(exercisor, msg.value);
 
         return true;
     }
