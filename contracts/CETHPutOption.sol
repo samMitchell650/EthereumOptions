@@ -59,12 +59,15 @@ contract CETHPutOption is ERC20, ERC20Detailed {
     
     function writeOption(uint256 amount) public beforeExpiration returns (bool success) {
         require(amount > 0, "Must write put option for at least 1 wei");
-        _contributions[msg.sender] = amount;
-        _total_contribution.add(amount);
-        _mint(msg.sender, amount);
         uint256 dai_collateral = amount.mul(_strike);
         require(DAI_CONTRACT.transferFrom(msg.sender, address(this), dai_collateral), "DAI transfer unsuccessful");
+        uint256 cdai_contract_balance_before = DAI_CONTRACT.balanceOf(address(this));
         require(CDAI_CONTRACT.mint(dai_collateral) == 0, "Minting of cDAI tokens unsuccessful");
+        uint256 cdai_contract_balance_after = DAI_CONTRACT.balanceOf(address(this));
+        uint256 cdai_contribution = cdai_contract_balance_after - cdai_contract_balance_before;
+        _contributions[msg.sender] = cdai_contribution;
+        _total_contribution.add(cdai_contribution);
+        _mint(msg.sender, amount);
         emit OptionWrote(msg.sender, amount);
         
         return true;

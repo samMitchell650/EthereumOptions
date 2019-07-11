@@ -57,10 +57,12 @@ contract CETHCallOption is ERC20, ERC20Detailed {
     
     function writeOption() public payable beforeExpiration returns (bool success) {
         require(msg.value > 0, "Must send eth to write option");
-        _contributions[msg.sender] = msg.value;
-        _total_contribution.add(msg.value);
         _mint(msg.sender, msg.value);
+        uint256 ceth_balance_before = CETH_CONTRACT.balanceOf(address(this));
         CETH_CONTRACT.mint.value(msg.value)();
+        uint256 ceth_balance_after = CETH_CONTRACT.balanceOf(address(this));
+        _contributions[msg.sender] = ceth_balance_after - ceth_balance_before;
+        _total_contribution.add(ceth_balance_after - ceth_balance_before);
         emit OptionWrote(msg.sender, msg.value);
         
         return true;
