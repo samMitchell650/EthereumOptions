@@ -61,8 +61,9 @@ contract CETHCallOption is ERC20, ERC20Detailed {
         uint256 ceth_balance_before = CETH_CONTRACT.balanceOf(address(this));
         CETH_CONTRACT.mint.value(msg.value)();
         uint256 ceth_balance_after = CETH_CONTRACT.balanceOf(address(this));
-        _contributions[msg.sender] = ceth_balance_after - ceth_balance_before;
-        _total_contribution.add(ceth_balance_after - ceth_balance_before);
+        uint ceth_contribution = ceth_balance_after.sub(ceth_balance_before);
+        _contributions[msg.sender] = ceth_contribution;
+        _total_contribution.add(ceth_contribution);
         emit OptionWrote(msg.sender, msg.value);
         
         return true;

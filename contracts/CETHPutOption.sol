@@ -64,7 +64,7 @@ contract CETHPutOption is ERC20, ERC20Detailed {
         uint256 cdai_contract_balance_before = DAI_CONTRACT.balanceOf(address(this));
         require(CDAI_CONTRACT.mint(dai_collateral) == 0, "Minting of cDAI tokens unsuccessful");
         uint256 cdai_contract_balance_after = DAI_CONTRACT.balanceOf(address(this));
-        uint256 cdai_contribution = cdai_contract_balance_after - cdai_contract_balance_before;
+        uint256 cdai_contribution = cdai_contract_balance_after.sub(cdai_contract_balance_before);
         _contributions[msg.sender] = cdai_contribution;
         _total_contribution.add(cdai_contribution);
         _mint(msg.sender, amount);
